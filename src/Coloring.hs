@@ -47,3 +47,4 @@ yellow = Color 255  255   0  0
 dark :: Color -> Color
 dark (Color a b c _) = Color (op a) (op b) (op c) 0
     where op x = (x `div` 5) * 2
+

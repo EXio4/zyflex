@@ -21,6 +21,7 @@ module Draw (
     genBoxes
 ) where
 
+import System.Random
 import Data.Maybe
 
 import Coloring
@@ -35,7 +36,8 @@ genBoxes sz pal mx n = map genB [1..mx]
                | otherwise = Box pos (dark cl)
             where cl = col z
                   pos = position sz mx z
-        col = fromMaybe (error "undefined color") . flip lookup pal
+        col z = fromMaybe (snd (takeR pal z)) (lookup z pal)
+
 
 position :: Size -> Int -> Int -> Rect
 position (Size w h) mx n = Rect x1 y1 x2 y2
@@ -43,3 +45,9 @@ position (Size w h) mx n = Rect x1 y1 x2 y2
         a z = (w `div` mx) *  z
         (x1,y1) = (a (n-1), 0)
         (x2,y2) = (a n    , h)
+
+takeR :: [a] -> Int -> a
+takeR list n = list !! indx
+    where
+        len = length list
+        (indx,_) = randomR (0, len-1) (mkStdGen n)

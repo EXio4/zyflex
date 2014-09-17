@@ -31,17 +31,21 @@ import Draw
 size :: Size
 size = Size 1024 600
 
+-- number of rectangles/squares
+numSq :: Int
+numSq = 7
+
 main :: IO ()
 main = withInit [InitEverything] $
     withWindow "ZyFlex" (Position 0 0) size
         [WindowShown,WindowFullscreen] $ \win ->
     withRenderer win (Device (-1)) [Accelerated, PresentVSync] $ \ren -> do
         renderClear ren
-        drawBoxes size ren palette 5 10
+        drawBoxes size ren palette numSq (numSq+2)
         renderPresent ren
         repeatKey ren
             (renderPresent ren >> threadDelay (10^4)) -- keep the screen updated
-            (efloop size ren 5 15)
+            (efloop size ren numSq (numSq*2))
         return ()
 
 rendN :: Renderer -> Box -> IO ()
@@ -68,7 +72,6 @@ efloop :: Size -> Renderer -> Int -> Int -> IO ()
 efloop _  _   _   n | n <= 0 = return ()
 efloop sz ren box n = do
     x <- randomNumber (1,box)
-    putStrLn $ "drawing [" ++ (show n) ++ "] " ++ (show x)
     drawBoxes sz ren palette box x
     threadDelay (10^5)
     efloop sz ren box (n-1)
