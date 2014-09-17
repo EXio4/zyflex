@@ -29,7 +29,7 @@ import Draw
 
 -- resolution
 size :: Size
-size = (Size 1024 600)
+size = Size 1024 600
 
 main :: IO ()
 main = withInit [InitEverything] $

@@ -21,6 +21,8 @@ module Draw (
     genBoxes
 ) where
 
+import Data.Maybe
+
 import Coloring
 import Graphics.UI.SDL
 
@@ -33,7 +35,7 @@ genBoxes sz pal mx n = map genB [1..mx]
                | otherwise = Box pos (dark cl)
             where cl = col z
                   pos = position sz mx z
-        col = maybe (error "undefined color") id . flip lookup pal
+        col = fromMaybe (error "undefined color") . flip lookup pal
 
 position :: Size -> Int -> Int -> Rect
 position (Size w h) mx n = Rect x1 y1 x2 y2
