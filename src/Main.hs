@@ -21,7 +21,6 @@ import System.Random
 import Control.Concurrent
 
 import Graphics.UI.SDL
-import Graphics.UI.SDL.Surface
 import qualified Graphics.UI.SDL.Keycode as Key
 
 
@@ -29,6 +28,7 @@ import Coloring
 import Draw
 
 -- resolution
+size :: Size
 size = (Size 1024 600)
 
 main :: IO ()
@@ -45,12 +45,13 @@ main = withInit [InitEverything] $
 randomNumber :: (Int,Int) -> IO Int
 randomNumber (a,b) = randomRIO (a,b)
 
+rendN :: Renderer -> Box -> IO ()
 rendN ren (Box rect (Color r g b _)) =
     setRenderDrawColor ren r g b 255 >> renderFillRect ren rect
 
 drawBoxes :: Size -> Renderer -> Pal -> Int -> Int -> IO ()
-drawBoxes s ren pal max on = mapM_ (rendN ren) boxes
-    where boxes = genBoxes s pal max on
+drawBoxes s ren pal mx on = mapM_ (rendN ren) boxes
+    where boxes = genBoxes s pal mx on
 
 repeatKey :: Renderer -> IO a -> IO ()
 repeatKey ren f = do
@@ -64,11 +65,11 @@ repeatKey ren f = do
 
 
 loop :: Size -> Renderer -> Int -> Int -> IO ()
-loop sz ren box n | n <= 0 = return ()
+loop _  _   _   n | n <= 0 = return ()
 loop sz ren box n = do
     x <- randomNumber (1,box)
     putStrLn $ "drawing [" ++ (show n) ++ "] " ++ (show x)
     drawBoxes sz ren palette box x
     renderPresent ren
-    threadDelay (10^5)
+    threadDelay (10^5 :: Int)
     loop sz ren box (n-1)

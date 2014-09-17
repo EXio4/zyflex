@@ -27,17 +27,17 @@ import Graphics.UI.SDL
 data Box = Box Rect Color
 
 genBoxes :: Size -> Pal -> Int -> Int -> [Box]
-genBoxes sz pal max n = map genB [1..max]
+genBoxes sz pal mx n = map genB [1..mx]
     where
         genB z | z == n    = Box pos cl
                | otherwise = Box pos (dark cl)
             where cl = col z
-                  pos = position sz max z
+                  pos = position sz mx z
         col = maybe (error "undefined color") id . flip lookup pal
 
 position :: Size -> Int -> Int -> Rect
-position (Size w h) max n = Rect x1 y1 x2 y2
+position (Size w h) mx n = Rect x1 y1 x2 y2
     where
-        a z = (w `div` max) *  z
+        a z = (w `div` mx) *  z
         (x1,y1) = (a (n-1), 0)
         (x2,y2) = (a n    , h)

@@ -12,4 +12,4 @@ executable zyflex
     buildable: True
     hs-source-dirs: src
     other-modules: Draw Coloring
- 
+    ghc-options: -Wall
