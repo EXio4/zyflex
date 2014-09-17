@@ -39,37 +39,39 @@ main = withInit [InitEverything] $
         renderClear ren
         drawBoxes size ren palette 5 10
         renderPresent ren
-        repeatKey ren $ loop size ren 5 15
+        repeatKey ren
+            (renderPresent ren >> threadDelay (10^4)) -- keep the screen updated
+            (efloop size ren 5 15)
         return ()
-
-randomNumber :: (Int,Int) -> IO Int
-randomNumber (a,b) = randomRIO (a,b)
 
 rendN :: Renderer -> Box -> IO ()
 rendN ren (Box rect (Color r g b _)) =
     setRenderDrawColor ren r g b 255 >> renderFillRect ren rect
 
 drawBoxes :: Size -> Renderer -> Pal -> Int -> Int -> IO ()
-drawBoxes s ren pal mx on = mapM_ (rendN ren) boxes
+drawBoxes s ren pal mx on = mapM_ (rendN ren) boxes >> renderPresent ren
     where boxes = genBoxes s pal mx on
 
-repeatKey :: Renderer -> IO a -> IO ()
-repeatKey ren f = do
+repeatKey :: Renderer -> IO a -> IO a -> IO ()
+repeatKey ren keeper f = do
       mbEvent <- pollEvent
+      _ <- keeper
       case fmap eventData mbEvent of
         Just Quit                              -> exitSuccess
         Just Keyboard{ keyMovement = KeyDown, keySym = Keysym{..} }
-          | keyKeycode == Key.Space            -> f >> repeatKey ren f
+          | keyKeycode == Key.Space            -> f >> repeatKey ren keeper f
           | keyKeycode == Key.Escape           -> exitSuccess
-        _otherwise                             -> repeatKey ren f
+        _otherwise                             -> repeatKey ren keeper f
 
 
-loop :: Size -> Renderer -> Int -> Int -> IO ()
-loop _  _   _   n | n <= 0 = return ()
-loop sz ren box n = do
+efloop :: Size -> Renderer -> Int -> Int -> IO ()
+efloop _  _   _   n | n <= 0 = return ()
+efloop sz ren box n = do
     x <- randomNumber (1,box)
     putStrLn $ "drawing [" ++ (show n) ++ "] " ++ (show x)
     drawBoxes sz ren palette box x
-    renderPresent ren
-    threadDelay (10^5 :: Int)
-    loop sz ren box (n-1)
+    threadDelay (10^5)
+    efloop sz ren box (n-1)
+
+randomNumber :: (Int,Int) -> IO Int
+randomNumber = randomRIO
