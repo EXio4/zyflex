@@ -33,7 +33,7 @@ size = Size 1024 600
 
 -- number of rectangles/squares
 numSq :: Int
-numSq = 7
+numSq = 4
 
 main :: IO ()
 main = withInit [InitEverything] $
@@ -45,7 +45,7 @@ main = withInit [InitEverything] $
         renderPresent ren
         repeatKey ren
             (renderPresent ren >> threadDelay (10^4)) -- keep the screen updated
-            (efloop size ren numSq (numSq*2))
+            (efloop size ren numSq (numSq,(numSq*2)))
         return ()
 
 rendN :: Renderer -> Box -> IO ()
@@ -68,13 +68,16 @@ repeatKey ren keeper f = do
         _otherwise                             -> repeatKey ren keeper f
 
 
-efloop :: Size -> Renderer -> Int -> Int -> IO ()
-efloop _  _   _   n | n <= 0 = return ()
-efloop sz ren box n = do
+efloop :: Size -> Renderer -> Int -> (Int,Int) -> IO ()
+efloop a b c (mn, mx) = randomNumber (mn, mx) >>= efloop' a b c
+
+efloop' :: Size -> Renderer -> Int -> Int -> IO ()
+efloop' _  _   _   n | n <= 0 = return ()
+efloop' sz ren box n = do
     x <- randomNumber (1,box)
     drawBoxes sz ren palette box x
     threadDelay (10^5)
-    efloop sz ren box (n-1)
+    efloop' sz ren box (n-1)
 
 randomNumber :: (Int,Int) -> IO Int
 randomNumber = randomRIO

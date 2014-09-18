@@ -30,20 +30,29 @@ import Graphics.UI.SDL
 data Box = Box Rect Color
 
 genBoxes :: Size -> Pal -> Int -> Int -> [Box]
-genBoxes sz pal mx n = map genB [1..mx]
+genBoxes (Size w h) pal mx n  =
+        genBoxes' 0 (Size w o1) pal (0,m1) n
+        ++ genBoxes' o1 (Size w o2) pal (m1,mx) n
     where
-        genB z | z == n    = Box pos cl
+        (o1,o2) = (h `div`2 , h-o1)
+        m1 = mx`div`2
+
+genBoxes' :: Int -> Size -> Pal -> (Int,Int) -> Int -> [Box]
+genBoxes' offset sz pal (st,mx) n = map (genB) [st..mx]
+    where
+        genB z
+               | z == n    = Box pos cl
                | otherwise = Box pos (dark cl)
             where cl = col z
-                  pos = position sz mx z
+                  pos = position sz offset (mx-st) (z-st)
         col z = fromMaybe (snd (takeR pal z)) (lookup z pal)
 
 
-position :: Size -> Int -> Int -> Rect
-position (Size w h) mx n = Rect x1 y1 x2 y2
+position :: Size -> Int -> Int -> Int -> Rect
+position (Size w h) off mx n = Rect x1 y1 x2 y2
     where
         a z = (w `div` mx) *  z
-        (x1,y1) = (a (n-1), 0)
+        (x1,y1) = (a (n-1), off)
         (x2,y2) = (a n    , h)
 
 takeR :: [a] -> Int -> a
