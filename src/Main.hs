@@ -27,26 +27,23 @@ import qualified Graphics.UI.SDL.Keycode as Key
 import Coloring
 import Draw
 
--- resolution
-size :: Size
-size = Size 1024 600
-
 -- number of rectangles/squares
 numSq :: Int
 numSq = 4
 
+-- initial res
+size :: Size
+size = Size 640 480
+
 main :: IO ()
 main = withInit [InitEverything] $
     withWindow "ZyFlex" (Position 0 0) size
-        [WindowShown,WindowFullscreen] $ \win ->
-    withRenderer win (Device (-1)) [Accelerated, PresentVSync] $ \ren -> do
-        renderClear ren
-        drawBoxes size ren palette numSq (numSq+2)
-        renderPresent ren
-        repeatKey ren
-            (renderPresent ren >> threadDelay (10^4)) -- keep the screen updated
-            (efloop size ren numSq (numSq,(numSq*2)))
-        return ()
+        [WindowShown,WindowFullscreenDesktop] $ \win ->
+    withRenderer win (Device (-1)) [Accelerated, PresentVSync] $ \ren ->
+        repeatKey size ren
+            (\_ -> renderPresent ren >> threadDelay (10^4)) -- keep the screen updated
+            (\size -> renderClear ren >> drawBoxes size ren palette numSq (numSq+2))
+            (\size -> efloop size ren numSq (numSq,(numSq*2)))
 
 rendN :: Renderer -> Box -> IO ()
 rendN ren (Box rect (Color r g b _)) =
@@ -56,16 +53,17 @@ drawBoxes :: Size -> Renderer -> Pal -> Int -> Int -> IO ()
 drawBoxes s ren pal mx on = mapM_ (rendN ren) boxes >> renderPresent ren
     where boxes = genBoxes s pal mx on
 
-repeatKey :: Renderer -> IO a -> IO a -> IO ()
-repeatKey ren keeper f = do
+repeatKey :: Size -> Renderer -> (Size -> IO a) -> (Size -> IO a) -> (Size -> IO a) -> IO ()
+repeatKey size ren keeper chang f = do
       mbEvent <- pollEvent
-      _ <- keeper
+      _ <- keeper size
       case fmap eventData mbEvent of
         Just Quit                              -> exitSuccess
         Just Keyboard{ keyMovement = KeyDown, keySym = Keysym{..} }
-          | keyKeycode == Key.Space            -> f >> repeatKey ren keeper f
+          | keyKeycode == Key.Space            -> f size >> repeatKey size ren keeper chang f
           | keyKeycode == Key.Escape           -> exitSuccess
-        _otherwise                             -> repeatKey ren keeper f
+        Just (Window _ (Resized x))            -> chang x >> repeatKey x ren keeper chang f 
+        _otherwise                             -> repeatKey size ren keeper chang f
 
 
 efloop :: Size -> Renderer -> Int -> (Int,Int) -> IO ()
