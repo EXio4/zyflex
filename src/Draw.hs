@@ -23,37 +23,33 @@ module Draw (
 import System.Random
 import Data.Maybe
 
+import Pregu
 import Coloring
 import Graphics.UI.SDL
 
 data Fig = Box Rect Color
+         | Txt Position Color String
 
-genBoxes :: Size -> Pal -> Int -> Int -> [Fig]
-genBoxes (Size w h) pal mx n  =
-        genBoxes' 0 (Size w o1) pal (0,m1) n
-        ++ genBoxes' o1 (Size w o2) pal (m1,mx) n
+genBoxes :: [Sect] -> Size -> Pal  -> Int -> [Fig]
+genBoxes sects sz pal n = concatMap genB (zip sects [1..])
     where
-        (o1,o2) = (h `div`2 , h-o1)
-        m1 = mx`div`2
-
-genBoxes' :: Int -> Size -> Pal -> (Int,Int) -> Int -> [Fig]
-genBoxes' offset sz pal (st,mx) n = map (genB) [st..mx]
-    where
-        genB z
-               | z == n    = Box pos cl
-               | otherwise = Box pos (dark cl)
+        genB ((Sect txt _),z)
+               | z == n    = [Box pos cl       , Txt (f pos) (dark cl) txt]
+               | otherwise = [Box pos (dark cl), Txt (f pos)       cl  txt]
             where cl = col z
-                  pos = position sz offset (mx-st) (z-st)
+                  pos = position sz mx z
+                  f (Rect x1 y1 _ _) = Position x1 y1
         col z = fromMaybe (snd (takeR pal z)) (lookup z pal)
-
-
-position :: Size -> Int -> Int -> Int -> Rect
-position (Size w h) off mx n = Rect x1 y1 x2 y2
+        mx = length sects
+        
+position :: Size -> Int -> Int -> Rect
+position (Size w h) mx n = Rect x1 y1 x2 y2
     where
         a z = (w `div` mx) *  z
-        (x1,y1) = (a (n-1), off)
+        (x1,y1) = (a (n-1), 0)
         (x2,y2) = (a n    , h)
-
+        
+-- this is done this way so every run it is the same
 takeR :: [a] -> Int -> a
 takeR list n = list !! indx
     where

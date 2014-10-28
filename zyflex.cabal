@@ -7,9 +7,9 @@ license-file: "LICENSE"
 data-dir: ""
  
 executable zyflex
-    build-depends: SDL2 -any, base -any, random -any
+    build-depends: SDL2 -any, SDL2-ttf -any, base -any, random -any
     main-is: Main.hs
     buildable: True
     hs-source-dirs: src
-    other-modules: Draw Coloring
+    other-modules: Draw Coloring Pregu
     ghc-options: -Wall
