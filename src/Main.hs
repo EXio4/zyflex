@@ -31,21 +31,18 @@ import Draw
 numSq :: Int
 numSq = 4
 
--- initial res
-size :: Size
-size = Size 640 480
-
 main :: IO ()
 main = withInit [InitEverything] $
-    withWindow "ZyFlex" (Position 0 0) size
+    withWindow "ZyFlex" (Position 0 0) sz
         [WindowShown,WindowFullscreenDesktop] $ \win ->
     withRenderer win (Device (-1)) [Accelerated, PresentVSync] $ \ren ->
-        repeatKey size ren
+        repeatKey sz ren
             (\_ -> renderPresent ren >> threadDelay (10^4)) -- keep the screen updated
             (\size -> renderClear ren >> drawBoxes size ren palette numSq (numSq+2))
-            (\size -> efloop size ren numSq (numSq,(numSq*2)))
+            (\size -> efloop size ren numSq (numSq*2,(numSq*4)))
+  where sz = Size 640 480
 
-rendN :: Renderer -> Box -> IO ()
+rendN :: Renderer -> Fig -> IO ()
 rendN ren (Box rect (Color r g b _)) =
     setRenderDrawColor ren r g b 255 >> renderFillRect ren rect
 
@@ -65,17 +62,13 @@ repeatKey size ren keeper chang f = do
         Just (Window _ (Resized x))            -> chang x >> repeatKey x ren keeper chang f 
         _otherwise                             -> repeatKey size ren keeper chang f
 
-
 efloop :: Size -> Renderer -> Int -> (Int,Int) -> IO ()
-efloop a b c (mn, mx) = randomNumber (mn, mx) >>= efloop' a b c
+efloop a b c (mn, mx) = randomRIO (mn, mx) >>= efloop' a b c
 
 efloop' :: Size -> Renderer -> Int -> Int -> IO ()
 efloop' _  _   _   n | n <= 0 = return ()
 efloop' sz ren box n = do
-    x <- randomNumber (1,box)
+    x <- randomRIO (1,box)
     drawBoxes sz ren palette box x
     threadDelay (10^5)
     efloop' sz ren box (n-1)
-
-randomNumber :: (Int,Int) -> IO Int
-randomNumber = randomRIO

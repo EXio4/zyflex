@@ -16,8 +16,7 @@
 -}
 
 module Draw (
-    Box(..),
-    position,
+    Fig(..),
     genBoxes
 ) where
 
@@ -27,9 +26,9 @@ import Data.Maybe
 import Coloring
 import Graphics.UI.SDL
 
-data Box = Box Rect Color
+data Fig = Box Rect Color
 
-genBoxes :: Size -> Pal -> Int -> Int -> [Box]
+genBoxes :: Size -> Pal -> Int -> Int -> [Fig]
 genBoxes (Size w h) pal mx n  =
         genBoxes' 0 (Size w o1) pal (0,m1) n
         ++ genBoxes' o1 (Size w o2) pal (m1,mx) n
@@ -37,7 +36,7 @@ genBoxes (Size w h) pal mx n  =
         (o1,o2) = (h `div`2 , h-o1)
         m1 = mx`div`2
 
-genBoxes' :: Int -> Size -> Pal -> (Int,Int) -> Int -> [Box]
+genBoxes' :: Int -> Size -> Pal -> (Int,Int) -> Int -> [Fig]
 genBoxes' offset sz pal (st,mx) n = map (genB) [st..mx]
     where
         genB z
