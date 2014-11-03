@@ -17,7 +17,8 @@
 
 module Draw (
     Fig(..),
-    genBoxes
+    genBoxes,
+    col
 ) where
 
 import System.Random
@@ -36,10 +37,10 @@ genBoxes sects sz pal n = concatMap genB (zip sects [1..])
         genB ((Sect txt _),z)
                | z == n    = [Box pos cl       , Txt (f pos) (dark cl) txt]
                | otherwise = [Box pos (dark cl), Txt (f pos)       cl  txt]
-            where cl = col z
+            where cl = coly z
                   pos = position sz mx z
                   f (Rect x1 y1 _ _) = Position x1 y1
-        col z = fromMaybe (snd (takeR pal z)) (lookup z pal)
+        coly = col pal
         mx = length sects
         
 position :: Size -> Int -> Int -> Rect
@@ -55,3 +56,5 @@ takeR list n = list !! indx
     where
         len = length list
         (indx,_) = randomR (0, len-1) (mkStdGen n)
+
+col pal z = fromMaybe (snd (takeR pal z)) (lookup z pal)
